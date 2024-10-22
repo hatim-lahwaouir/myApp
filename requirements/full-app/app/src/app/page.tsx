@@ -1,9 +1,14 @@
-import Image from "next/image";
+"use client"
+import { useState } from 'react';
+import Login from './component/Login';
+import SignUp from './component/SignUp';
 
 export default function Home() {
+  const [option, setOption] = useState('Login');
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <h1>Start </h1>
-    </div> 
+    <div >
+      {option === 'Login' ? <Login /> : <SignUp />}
+    </div>
   );
 }

@@ -1,9 +1,11 @@
 FROM node:20
 
-COPY --chmod=666 app/package.json .
+COPY --chmod=666 ./app/package*.json .
 RUN npm install
+
+COPY --chmod=666 app /app
 WORKDIR /app
-RUN npm update
+
 
 
 
