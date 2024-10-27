@@ -11,7 +11,7 @@ function Home() {
   const [option, setOption] = useState('Login');
 
   return (
-    <div  className="w-full  bg-[#FAF9F6] h-screen flex justify-center items-center " >
+    <div  className="w-full  bg-[#0F0F0F] h-screen flex justify-center items-center " >
       {option === 'Login' ? <Login setOption={setOption} /> : <SignUp setOption={setOption} />}
     </div>
 );

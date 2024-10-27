@@ -1,11 +1,19 @@
 services:
-  nextjs-app:
-    container_name: CRUD-API
-    build: ./requirements/full-app
+  frontend:
+    container_name: frontend
+    build: ./requirements/frontend
     volumes:
-      - ./requirements/full-app/app/:/app
+      - ./requirements/frontend/app/:/app
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development
     command: npm run dev
+
+  backend:
+    container_name: backend
+    build: ./requirements/backend
+    volumes:
+      - ./requirements/backend/api/:/api
+    ports:
+      - "8000:8000"
