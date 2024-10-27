@@ -1,7 +1,6 @@
 import {GetUserInfo} from "../api/user";
 
-
- function Profile() {
+function Game() {
     
 
 
@@ -13,8 +12,6 @@ import {GetUserInfo} from "../api/user";
     
         </div>
     );
-  }
-  
-  
-  
-  export default Profile;
+}
+
+export default Game;

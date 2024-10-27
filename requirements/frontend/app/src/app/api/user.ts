@@ -1,6 +1,6 @@
 "use server"
 import { cookies } from 'next/headers'
-import  {SignUpRequest, LoginRequest, tokens } from "./types";
+import  {SignUpRequest, LoginRequest} from "./types";
 
 
 
@@ -56,7 +56,16 @@ const SingUpAction = async (obj : SignUpRequest) : Promise <any> =>{
 
 }
 
+const GetUserInfo = () =>{
+    const cookieStore = cookies();
+    const userInfoCookie = cookieStore.get("userInfo")
+
+    const userInfo =  JSON.parse(userInfoCookie.value);
+
+    return userInfo;
+}
 
 
 
-export {LoginAction, SingUpAction};
+
+export {LoginAction, SingUpAction, GetUserInfo};
