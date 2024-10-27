@@ -1,5 +1,7 @@
 import { Input , Button}from "../ui/tools";
 import {SubmitErrorHandler, useForm } from "react-hook-form";
+import {SingUpAction} from "../api/user";
+// import {SignUpRequest} from "../api/types"
 
 type FormFields = {
     username: string,
@@ -13,8 +15,19 @@ type FormFields = {
 const SignUpForm = () =>{
 
     const {register, handleSubmit , setError , formState:{errors , isSubmitting}} = useForm<FormFields>({ mode: "onChange",reValidateMode: "onChange" });
-    const onSubmit:SubmitErrorHandler<FormFields> = (data) =>{
-        console.log(data)
+    const onSubmit:SubmitErrorHandler<FormFields> = async (data:any) =>{
+        const res = await SingUpAction(data);
+        if (res[0] == 200){
+
+        }
+        else{
+            const keys = Object.keys(res[1]);
+            keys.forEach((key) => {
+                setError(key,{
+                    message: res[1][key][0],
+                });
+            });
+        }
     }
     handleSubmit(onSubmit);
 
@@ -27,11 +40,11 @@ const SignUpForm = () =>{
             {errors.username && <span className="text-red-500"> { errors.username.message} </span>}
             <Input name="Email" register={register} registerName="email"  validation={ {validate : (value:string) => { return /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(value) || "Enter a valid email address." } } } />
             {errors.email && <span className="text-red-500"> { errors.email.message} </span>}
-            <Input name="Password"  register={register} registerName="password" validation={ {validate : (value:string) => { return value.length < 10 || "Create a password at least 6 characters long." } } } />
+            <Input name="Password"  register={register} registerName="password" validation={ {validate : (value:string) => { return value.length >= 10 || "Create a password at least 10 characters long." } } } />
             {errors.password && <span className="text-red-500"> { errors.password.message} </span>}
             
             
-            <Button name={isSubmitting ? "Welcome!" : "is Submitting "} type="submit" disabled={isSubmitting} />
+            <Button name={isSubmitting ?"is Submitting ":  "Welcome!" } type="submit" disabled={isSubmitting} />
             {errors.root && <span className="text-red-500"> { errors.root.message} </span>}
 
     </form>)
@@ -62,7 +75,6 @@ const SignUp: React.FC<LoginProps> = ({ setOption }) => {
                 </div>
                 
                 <SignUpForm/>   
-                
 
             </div>
         </div>

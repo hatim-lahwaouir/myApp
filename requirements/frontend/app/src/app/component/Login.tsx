@@ -1,8 +1,46 @@
-import { SimpleInput , Button}from "../ui/tools";
+'use client';
+import { Input , Button}from "../ui/tools";
+import {SubmitErrorHandler, useForm } from "react-hook-form";
+import {LoginAction} from "../api/user";
+import { useRouter } from 'next/navigation';
+type FormFields = {
+    usernameOrEmail: string,
+    password : string,
+
+}
+
+const LoginForm = () =>{
+
+    const {register, handleSubmit , setError , formState:{errors , isSubmitting}} = useForm<FormFields>({ mode: "onChange",reValidateMode: "onChange" });
+    const router = useRouter();
+    const onSubmit:SubmitErrorHandler<FormFields> = async (data:any) =>{
+        const res = await LoginAction(data);
 
 
+        if (!res[0])
+        {
+            setError("root",{
+                message: res[1],
+            })
+        }
+        else{
+            router.push("/profile");
+        }
+    }
+    handleSubmit(onSubmit);
 
 
+    return (
+        <form className="flex flex-col  h-[60%] w-[90%] justify-around mt-10 items-center " onSubmit={handleSubmit(onSubmit)}>
+
+            <Input name="Username Or Email" register={register} registerName="usernameOrEmail" validation={ {validate : (value:string) => { return value.length != 0 || "Enter your Username Or Email." } } } />
+            <Input name="Password"  register={register} registerName="password" validation={ {validate : (value:string) => { return value.length != 0 || "Enter your password " } } } />
+            
+            <Button name={isSubmitting ?"is Submitting ":  "Welcome Back !" } type="submit" disabled={isSubmitting} />
+            {errors.root && <span className="text-red-500"> { errors.root.message} </span>}
+
+    </form>)
+}
 
 interface LoginProps {
     setOption: React.Dispatch<React.SetStateAction<'Login' | 'SignUp'>>;
@@ -32,12 +70,7 @@ interface LoginProps {
                     
                 </div>
                 
-                
-                <form className="flex flex-col  h-[50%] w-[90%] justify-around mt-10 items-center ">
-                    <SimpleInput name="Email or Username" example="Example : hatim@gmail.com or hatim_123" />
-                    <SimpleInput name="Password" />
-                    <Button name="Welcome Back !"/>
-                </form>
+                <LoginForm/>
             </div>
         </div>
     );

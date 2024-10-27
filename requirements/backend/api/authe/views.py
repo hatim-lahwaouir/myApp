@@ -4,24 +4,37 @@ from rest_framework.response import Response
 from .serializers import RegisterSerializer, UserInfoSerializer
 from rest_framework import status
 from django.contrib.auth import authenticate
+from .models import User
+from django.db.models import Q
+from rest_framework_simplejwt.tokens import RefreshToken
 
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
 
 @api_view(['POST'])
 @permission_classes([AllowAny]) 
 def login(request):
-    emailOrUsername = request.data.get('emailOrUsername')
-    passowrd = request.data.get('password')
+    usernameOrEmail = request.data.get('usernameOrEmail', '')
+    print(request.data)
+    password = request.data.get('password', '')
 
+    user = User.objects.filter(Q(username=usernameOrEmail) | Q(email=usernameOrEmail)).first()
 
-    user = authenticate(username=email_or_username, password=password)
-    
     if user is  None:
         return Response({"msg": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-    
+    if not user.check_password(password):
+        return Response({"msg": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
     
     userInfo = UserInfoSerializer(user)
-    return Response({"msg": "Login successful", "userInfo": userInfo.data})
-    
+    return Response({"msg": "Login successful", "userInfo": userInfo.data, "tokens" : get_tokens_for_user(user)})
+
 
 
 @api_view(['POST'])
@@ -31,5 +44,7 @@ def signUp(request):
 
     if not registerSerializer.is_valid():
         return  Response(registerSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    registerSerializer.create(registerSerializer.validated_data)
     
     return Response({'msg': "Account created !"})
+ 
