@@ -42,10 +42,7 @@ class GameConsumer(AsyncWebsocketConsumer):
     def disconnect(self, close_code):
         pass
     def receive(self, text_data):
-        print(text_data)
-        self.send(text_data=json.dumps({
-            'message': "message"
-        }))
+        pass
 
 
 
@@ -58,9 +55,9 @@ class GameQueue(AsyncWebsocketConsumer):
         if not self.user.is_authenticated or ismember:
             return
         
-        self.gn = str(self.user.id)  + '_gl'
+        self.gn = str(self.user.id)  + '_gq'
         await self.channel_layer.group_add(
-            self.room_group_name,
+            self.gn,
             self.channel_name
         )
         await self.accpet()   
@@ -86,7 +83,7 @@ class GameQueue(AsyncWebsocketConsumer):
             GameQueu
             for user in users:
                 await self.channel_layer.group_send(
-                   str(user.id) + '_gl',
+                   str(user.id) + '_gq',
                     {
                             "type": "join.game",
                             "users" : UsersInfo,
@@ -102,10 +99,14 @@ class GameQueue(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         if self.user.is_authenticated:
             await self.channel_layer.group_discard(
-                self.room_group_name,
+                self.gn,
                 self.channel_name
             )
             rmem.srem("game_queue", str(self.user.id))
 
     async def receive(self, text_data):
         pass
+
+
+    async def game_list(self, data):
+        self.send(text_data=json.dumps(data))
