@@ -17,3 +17,7 @@ services:
       - ./requirements/backend/api/:/api
     ports:
       - "8000:8000"
+  redis:
+    image: redis:alpine3.20
+    ports:
+      - "6379:6379"
