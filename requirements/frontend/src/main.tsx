@@ -1,11 +1,13 @@
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { AutContext } from './authContext.ts'
+
 
 import Landing from './pages/landing/Landing.tsx'
 import About from './pages/About/About.tsx'
 import Game from './pages/game/Game.tsx'
+import { useState } from 'react'
 
 
 const router = createBrowserRouter([
@@ -25,7 +27,21 @@ const router = createBrowserRouter([
 
 ]);
 
-createRoot(document.getElementById('root')!).render(
 
-    <RouterProvider router={router}/>
+const App = () => {
+    const [isAuth, setAuth] = useState<any>(false);
+  
+    console.log("change ============> ",isAuth)
+    return (
+    <AutContext.Provider value={{isAuth, setAuth}}>
+        <RouterProvider router={router} />
+    </AutContext.Provider>
+    )
+
+
+  };
+
+
+createRoot(document.getElementById('root')!).render(        
+    <App/>
 )

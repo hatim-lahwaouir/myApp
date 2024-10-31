@@ -1,11 +1,13 @@
 
 import { useForm, SubmitHandler } from "react-hook-form"
 import {  LoginAction } from "../api/auth";
-
+import { useContext } from "react";
+import { AutContext } from "../authContext";
 type Inputs = {
     email: string
     password: string
   }
+
 
 
 
@@ -18,6 +20,9 @@ const stopPropagation = (event:any) => {
 
 
 const Form = () =>{
+
+    const auth = useContext(AutContext);
+    
     const {
         register,
         handleSubmit,
@@ -29,6 +34,7 @@ const Form = () =>{
      const result = await LoginAction(data);
     
       if (result?.ok){
+        auth?.setAuth(true);
         localStorage.setItem("access", result?.data?.tokens?.access);
         localStorage.setItem("refresh", result?.data?.tokens?.refresh);
         localStorage.setItem('userInfo', JSON.stringify(result?.data?.userInfo));

@@ -1,8 +1,18 @@
-import { useState } from "react"
+import { useState, useContext } from "react"
 import Popup from "./Popup"
 import Login from "./Login"
 import SignUp from "./SingUp"
 import { Link } from "react-router-dom"
+import { AutContext } from "../authContext"
+
+
+interface User{
+    username : string | null,
+    id : string | null,
+    loggedIn : boolean,
+    setUser : any,
+}
+
 
 const LadingPageSection = () => {
 
@@ -45,10 +55,14 @@ const RegisterSection = () =>{
 
 
 const LogoutSection = () =>{
+    const auth = useContext(AutContext);
 
     
     return (<div className="w-[20%] min-w-64  bg-white flex justify-around items-center  "> 
-            <button className="  w-32 h-9  bg-black text-white rounded-md cursor-pointer" > Logout </button>
+            <button className="  w-32 h-9  bg-black text-white rounded-md cursor-pointer" onClick={() => {
+                auth?.setAuth(false);
+                localStorage.clear();
+            }} > Logout </button>
     </div>)
 
 }
@@ -56,7 +70,8 @@ const LogoutSection = () =>{
 
 
 const NavBar = () =>{
-    const isAuthenticated = localStorage.getItem('access') != null; 
+    const auth = useContext(AutContext);
+    const isAuthenticated = auth.isAuth; 
 
 
     return (<div className="flex w-full h-[5em]   justify-around items-center ">
