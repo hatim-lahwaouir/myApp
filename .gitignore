@@ -1,4 +1,5 @@
 # Python cache files
+*.sqlite3
 __pycache__/
 *.py[cod]
 *$py.class

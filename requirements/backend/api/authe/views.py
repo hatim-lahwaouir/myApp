@@ -20,18 +20,18 @@ def get_tokens_for_user(user):
 @api_view(['POST'])
 @permission_classes([AllowAny]) 
 def login(request):
-    usernameOrEmail = request.data.get('usernameOrEmail', '')
+    email = request.data.get('email', '')
     print(request.data)
     password = request.data.get('password', '')
 
-    user = User.objects.filter(Q(username=usernameOrEmail) | Q(email=usernameOrEmail)).first()
+    user = User.objects.filter(email=email).first()
 
     if user is  None:
         return Response({"msg": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
     if not user.check_password(password):
         return Response({"msg": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
-    
+     
     userInfo = UserInfoSerializer(user)
     return Response({"msg": "Login successful", "userInfo": userInfo.data, "tokens" : get_tokens_for_user(user)})
 

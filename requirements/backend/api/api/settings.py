@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     "authe",
     "game",
 ]
-
+ 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -56,7 +56,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://frontend:3000",
+    "http://localhost:5173",
 ]
 
 # CORS_ORIGIN_ALLOW_ALL = False
