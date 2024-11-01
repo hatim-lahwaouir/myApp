@@ -2,7 +2,7 @@ type LoginData = {
     email: string
     password: string
 }
-
+import { HOST , PORT} from "../config"
 
 
 
@@ -12,10 +12,8 @@ type SingUpData = {
     password: string
 }
 
-const Host = "localhost"
-const Port = "8000"
 
-const url = `http://${Host}:${Port}/api/`
+const url = `http://${HOST}:${PORT}/api/`
 
 
 

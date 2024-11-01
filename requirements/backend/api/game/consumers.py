@@ -24,7 +24,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         query_string = urllib.parse.parse_qs(self.scope['query_string'].decode())
         game_id = query_string.get('gameId', [None])[0]
 
-        if not self.can_play(game_id):
+        if not game_id or not self.can_play(game_id):
             return
         await self.accept()
 
@@ -67,12 +67,18 @@ class GameQueue(AsyncWebsocketConsumer):
 
         # waiting unil  we have four players then we start the game
         await Redis.rpush(str(self.user.id), "game_list")
-        self.accept()
 
 
-        game = Game()
 
+        await self.channel_layer.group_send(
+                   str(self.user.id) + '_gq',
+                    {
+                            "type": "hello.game",
+                            "userGameId": game.gameId,
+                    }
+        )
         if await Redis.llen("game_list") >= 4:
+            game = Game()
             users = lrange("game_list", 0, 4)
             usersData = User.objects.filter(id__in=users)
             game.add(usersData)
@@ -80,7 +86,6 @@ class GameQueue(AsyncWebsocketConsumer):
 
             UsersInfo = UserInfoSerializer(usersData, many=True)
             
-            GameQueu
             for user in users:
                 await self.channel_layer.group_send(
                    str(user.id) + '_gq',
@@ -108,5 +113,7 @@ class GameQueue(AsyncWebsocketConsumer):
         pass
 
 
-    async def game_list(self, data):
+    async def hello_game(self, data):
+        self.send(text_data=json.dumps(data))
+    async def join_game(self, data):
         self.send(text_data=json.dumps(data))
