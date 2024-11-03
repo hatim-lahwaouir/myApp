@@ -20,8 +20,14 @@ const GameAthentication = async () =>{
       });
     const result = await response.json()
 
-    console.log(result);
-}
+    console.log(result?.uuid);
+    if (result?.uuid){
+      return (result?.uuid);
+    }
+    
+
+    return '';
+  }
 
 
 

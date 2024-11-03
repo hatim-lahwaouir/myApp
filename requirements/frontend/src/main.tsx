@@ -29,9 +29,8 @@ const router = createBrowserRouter([
 
 
 const App = () => {
-    const [isAuth, setAuth] = useState<any>(false);
+    const [isAuth, setAuth] = useState<any>(localStorage.getItem("access") == null ? false : true);
   
-    console.log("change ============> ",isAuth)
     return (
     <AutContext.Provider value={{isAuth, setAuth}}>
         <RouterProvider router={router} />

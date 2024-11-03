@@ -7,22 +7,30 @@ from .serializers import UserInfoSerializer
 from .models import Game
 import urllib.parse
 from channels.db import database_sync_to_async
-
+from authe.models import User
+from channels.db import database_sync_to_async
 
 Redis = redis.Redis(host='redis', port=6379, decode_responses=True)
-
+ 
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope['user']
 
-        ismember  = await Redis.sismember(str(self.user.id), "game_queue")
+        ismember  =  Redis.sismember(str(self.user.id), "game_queue")
+        
+        print(ismember)
+        if ismember:
+            print("*****YES*******************")
+        
         if not self.user.is_authenticated or ismember:
             return
-    
 
-        query_string = urllib.parse.parse_qs(self.scope['query_string'].decode())
-        game_id = query_string.get('gameId', [None])[0]
+        try:
+            query_string = urllib.parse.parse_qs(self.scope['query_string'].decode())
+            game_id = query_string.get('gameId', [''])[0]
+        except:
+            game_id = ''
 
         if not game_id or not self.can_play(game_id):
             return
@@ -50,70 +58,73 @@ class GameConsumer(AsyncWebsocketConsumer):
 class GameQueue(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope['user']
+        self.gn = str(self.user.id) + '_gq'
 
-        ismember  = await Redis.sismember(str(self.user.id), "game_queue")
-        if not self.user.is_authenticated or ismember:
+        ismember  = Redis.sismember(str(self.user.id), "game_queue")
+
+        if not self.user or ismember:
             return
         
-        self.gn = str(self.user.id)  + '_gq'
         await self.channel_layer.group_add(
             self.gn,
             self.channel_name
         )
-        await self.accpet()   
+        await self.accept()
 
         # keep track of User in game loop
-        await Redis.sadd(str(self.user.id), "game_queue")
+        Redis.sadd( "game_queue", str(self.user.id))
 
         # waiting unil  we have four players then we start the game
-        await Redis.rpush(str(self.user.id), "game_list")
 
-
+        Redis.rpush("game_list", str(self.user.id))
 
         await self.channel_layer.group_send(
-                   str(self.user.id) + '_gq',
+                   self.gn,
                     {
                             "type": "hello.game",
-                            "userGameId": game.gameId,
                     }
-        )
-        if await Redis.llen("game_list") >= 4:
-            game = Game()
-            users = lrange("game_list", 0, 4)
-            usersData = User.objects.filter(id__in=users)
-            game.add(usersData)
-            game.save()
-
-            UsersInfo = UserInfoSerializer(usersData, many=True)
-            
-            for user in users:
+        )       
+        if Redis.llen("game_list") >= 4:
+            users_ids = Redis.lrange("game_list", 0, 4)
+            UsersInfoData = await self.get_users_data(users_ids)
+            game = await self.create_game(users_ids)
+             
+            for user_id in users_ids:
                 await self.channel_layer.group_send(
-                   str(user.id) + '_gq',
+                   str(user_id) + '_gq',
                     {
                             "type": "join.game",
-                            "users" : UsersInfo,
+                            "users" : UsersInfoData,
                             "gameId": game.gameId,
                     }
             )
             self.close()
-            Redis.srem("game_queue", user)
+            Redis.srem("game_queue", user_id)
+ 
+    @database_sync_to_async
+    def create_game(self, users_ids):
+        game = Game.objects.create()
+        game.players.add(*User.objects.filter(id__in=users_ids))
+        return game
 
-
-
-
+    @database_sync_to_async
+    def get_users_data(self, users_ids):
+        usersData = User.objects.filter(id__in=users_ids)
+        return UserInfoSerializer(usersData, many=True).data
+  
     async def disconnect(self, close_code):
-        if self.user.is_authenticated:
+        if self.user:
             await self.channel_layer.group_discard(
                 self.gn,
                 self.channel_name
             )
-            rmem.srem("game_queue", str(self.user.id))
+            Redis.srem("game_queue", str(self.user.id))
 
     async def receive(self, text_data):
         pass
 
 
     async def hello_game(self, data):
-        self.send(text_data=json.dumps(data))
+        await self.send(text_data=json.dumps(data))
     async def join_game(self, data):
-        self.send(text_data=json.dumps(data))
+        await self.send(text_data=json.dumps(data))

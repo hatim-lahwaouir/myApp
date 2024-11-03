@@ -24,15 +24,26 @@ const LadingPageSection = () => {
 
 }
 
-const PagesSection  = () =>{
+const PagesSection  = ({isAuthenticated} :any) =>{
+    const auth = useContext(AutContext);
+
+    if (isAuthenticated)
+    {
     return (
     <div className="w-[35%] bg-white text-gray-500 text-base flex  justify-around items-center " > 
 
             <h1 className="cursor-pointer "> <Link to="/about" > About Me </Link>  </h1>
-            <h1 className="cursor-pointer "> <Link to="/game" > game </Link>  </h1>
-            <h1 className="cursor-pointer "> <Link to="/contact" > contact </Link>  </h1>
+            <h1 className="cursor-pointer "> <Link to="/game" > Play </Link>  </h1>
 
     </div>)
+    }  
+    
+    return (
+        <div className="w-[35%] bg-white text-gray-500 text-base flex  justify-around items-center " > 
+
+                <h1 className="cursor-pointer "> <Link to="/about" > About Me </Link>  </h1>
+        </div>
+    )
 }
 
 const RegisterSection = () =>{
@@ -54,12 +65,13 @@ const RegisterSection = () =>{
 }
 
 
-const LogoutSection = () =>{
-    const auth = useContext(AutContext);
+const LogoutSection = ({logOut}:any) =>{
 
     
+    const auth = useContext(AutContext);
     return (<div className="w-[20%] min-w-64  bg-white flex justify-around items-center  "> 
             <button className="  w-32 h-9  bg-black text-white rounded-md cursor-pointer" onClick={() => {
+                logOut();
                 auth?.setAuth(false);
                 localStorage.clear();
             }} > Logout </button>
@@ -71,23 +83,17 @@ const LogoutSection = () =>{
 
 const NavBar = () =>{
     const auth = useContext(AutContext);
-    const isAuthenticated = auth.isAuth; 
-
+    const isAuthenticated = localStorage.getItem("access") != null ; 
 
     return (<div className="flex w-full h-[5em]   justify-around items-center ">
     
         <LadingPageSection/>
-        <PagesSection/>
+        <PagesSection isAuthenticated={isAuthenticated} />
 
         { isAuthenticated || <RegisterSection/>}
-        { isAuthenticated && <LogoutSection/>}
+        { isAuthenticated && <LogoutSection logOut={() => auth?.setAuth(false)} />}
     </div>
-    
-)
-
-
-
-
+    )
 }
 
 

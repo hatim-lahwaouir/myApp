@@ -1,6 +1,7 @@
 from django.db import models
 from authe.models import User
-
+import random
+import string
 
 # Create your models here.
 
