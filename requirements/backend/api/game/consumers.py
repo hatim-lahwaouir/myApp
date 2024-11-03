@@ -9,21 +9,20 @@ import urllib.parse
 from channels.db import database_sync_to_async
 from authe.models import User
 from channels.db import database_sync_to_async
-
-Redis = redis.Redis(host='redis', port=6379, decode_responses=True)
+from collections import deque 
+# Redis = redis.Redis(host='redis', port=6379, decode_responses=True)
  
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope['user']
 
-        ismember  =  Redis.sismember(str(self.user.id), "game_queue")
+        # ismember  =  Redis.sismember(str(self.user.id), "game_queue")
         
-        print(ismember)
-        if ismember:
-            print("*****YES*******************")
+        # print(ismember)
+        # if ismember:
         
-        if not self.user.is_authenticated or ismember:
+        if not self.user.is_authenticated :
             return
 
         try:
@@ -55,16 +54,18 @@ class GameConsumer(AsyncWebsocketConsumer):
 
 
 
+dq = deque([])
+
 class GameQueue(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope['user']
         self.gn = str(self.user.id) + '_gq'
 
-        ismember  = Redis.sismember(str(self.user.id), "game_queue")
+        # ismember  = Redis.sismember(str(self.user.id), "game_queue")
 
-        if not self.user or ismember:
+        if not self.user.is_authenticated:
             return
-        
+        dq.append(self.user.id) 
         await self.channel_layer.group_add(
             self.gn,
             self.channel_name
@@ -72,20 +73,27 @@ class GameQueue(AsyncWebsocketConsumer):
         await self.accept()
 
         # keep track of User in game loop
-        Redis.sadd( "game_queue", str(self.user.id))
+        # Redis.sadd( "game_queue", str(self.user.id))
 
         # waiting unil  we have four players then we start the game
 
-        Redis.rpush("game_list", str(self.user.id))
+        # Redis.rpush("game_list", str(self.user.id))
 
         await self.channel_layer.group_send(
                    self.gn,
                     {
                             "type": "hello.game",
                     }
-        )       
-        if Redis.llen("game_list") >= 4:
-            users_ids = Redis.lrange("game_list", 0, 4)
+        )
+
+
+        print("*" * 100)
+        print(dq)
+        if len(dq) >= 3:
+            users_ids = []
+            for _ in range(3):
+                users_ids.append(dq.popleft())
+            # users_ids = Redis.lrange("game_list", 0, 4)
             UsersInfoData = await self.get_users_data(users_ids)
             game = await self.create_game(users_ids)
              
@@ -99,7 +107,7 @@ class GameQueue(AsyncWebsocketConsumer):
                     }
             )
             self.close()
-            Redis.srem("game_queue", user_id)
+            # Redis.srem("game_queue", user_id)
  
     @database_sync_to_async
     def create_game(self, users_ids):
@@ -118,7 +126,7 @@ class GameQueue(AsyncWebsocketConsumer):
                 self.gn,
                 self.channel_name
             )
-            Redis.srem("game_queue", str(self.user.id))
+            # Redis.srem("game_queue", str(self.user.id))
 
     async def receive(self, text_data):
         pass

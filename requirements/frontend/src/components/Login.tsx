@@ -3,6 +3,7 @@ import { useForm, SubmitHandler } from "react-hook-form"
 import {  LoginAction } from "../api/auth";
 import { useContext } from "react";
 import { AutContext } from "../authContext";
+import { redirect } from "react-router-dom";
 type Inputs = {
     email: string
     password: string
@@ -37,7 +38,7 @@ const Form = () =>{
         auth?.setAuth(true);
         localStorage.setItem("access", result?.data?.tokens?.access);
         localStorage.setItem("refresh", result?.data?.tokens?.refresh);
-        localStorage.setItem('userInfo', JSON.stringify(result?.data?.userInfo));
+        localStorage.setItem('userInfo', JSON.stringify(result?.data?.userInfo));    
       }
       else{
         setError("root", {
@@ -64,10 +65,11 @@ const Form = () =>{
 
 interface LoginProps{
   setOption:any,
+  option: string [],
 }
 // const Popup: React.FC<PopupProps> = ({ close, trigger, children }) => {
 
-const Login:React.FC <LoginProps> = ({setOption}) =>{
+const Login:React.FC <LoginProps> = ({setOption, option}) =>{
 
 
     return (
@@ -83,10 +85,10 @@ const Login:React.FC <LoginProps> = ({setOption}) =>{
         <button className=" border-2 w-[50%] h-9 rounded-xl font-light text-sm " >  Log in with google </button>
         </div>
         
-        
+        {option.length == 2 && <span className=" w-[100%] flex justify-center  text-purple-600 mt-2 font-medium "> You accont was created succesfully  </span>}
         <Form/>
 
-        <span className="text-xs mt-10 w-[100%] flex justify-center ">Don't have an account <span className="text-blue-500 pl-1 cursor-pointer " onClick={() => setOption("signUp")}> Sign up ?</span>  </span>
+        <span className="text-xs mt-10 w-[100%] flex justify-center ">Don't have an account <span className="text-blue-500 pl-1 cursor-pointer " onClick={() => setOption(["signUp"])}> Sign up ?</span>  </span>
 
 
 

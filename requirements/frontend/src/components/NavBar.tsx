@@ -25,7 +25,6 @@ const LadingPageSection = () => {
 }
 
 const PagesSection  = ({isAuthenticated} :any) =>{
-    const auth = useContext(AutContext);
 
     if (isAuthenticated)
     {
@@ -47,17 +46,17 @@ const PagesSection  = ({isAuthenticated} :any) =>{
 }
 
 const RegisterSection = () =>{
-    const [option, setoption] = useState('');
+    const [option, setoption] = useState(['']);
 
-    
+    console.log(option)
     return (<div className="w-[20%] min-w-64  bg-white flex justify-around items-center  "> 
     
-            <button className="border-2 w-32 h-9  border-neutral-300 rounded-lg cursor-pointer" onClick={() => setoption("login")}> Login  </button>
-            <button className="  w-32 h-9  bg-black text-white rounded-md cursor-pointer" onClick={() => setoption("signUp")}> Get started  </button>
+            <button className="border-2 w-32 h-9  border-neutral-300 rounded-lg cursor-pointer" onClick={() => setoption(["login"])}> Login  </button>
+            <button className="  w-32 h-9  bg-black text-white rounded-md cursor-pointer" onClick={() => setoption(["signUp"])}> Get started  </button>
             
-            <Popup trigger={option.length != 0} close={() => setoption('')}>
-                 {option === 'login' && <Login setOption={setoption} />}
-                 {option === 'signUp' && <SignUp setOption={setoption} />}         
+            <Popup trigger={option[0].length != 0} close={() => setoption([''])}>
+                 {option[0] === 'login' && <Login setOption={setoption} option={option} />}
+                 {option[0] === 'signUp' && <SignUp setOption={setoption} />}
             </Popup>
     
     </div>)

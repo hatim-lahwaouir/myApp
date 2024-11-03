@@ -61,7 +61,7 @@ const passwordValidation = (value:string) =>{
 
 
 
-const Form = () =>{
+const Form = ({onSuccess}:any) =>{
     const {
         register,
         handleSubmit,
@@ -75,7 +75,7 @@ const Form = () =>{
        
          if (result?.ok){
            console.log(result)
-            
+            onSuccess()
          }
          else{
             const errors:any = result?.info;
@@ -104,7 +104,7 @@ const Form = () =>{
         {errors.password  && <span className="text-xs text-red-500 mt-1 " >{errors.password.message}</span>}
 
         <span className="text-xs mt-3 w-[50%] flex justify-end text-blue-500 cursor-pointer ">Forget password ? </span>
-        <button className="border-2 w-[55%] h-[4em]   mt-8  bg-black text-white text-xs  rounded-3xl cursor-pointer flex justify-center items-center" > Login  </button>
+        <button className="border-2 w-[55%] h-[4em]   mt-8  bg-black text-white text-xs  rounded-3xl cursor-pointer flex justify-center items-center" > Sign up  </button>
         {errors.root  && <span className="text-xs text-red-500 mt-1 " >{errors.root.message}</span>}
 
         </form>
@@ -114,6 +114,7 @@ const Form = () =>{
 
 interface SignUpProps{
     setOption:any,
+    
   }
 
   const SignUp:React.FC <SignUpProps> = ({setOption}) =>{
@@ -133,8 +134,8 @@ interface SignUpProps{
         </div>
         
 
-        <Form/>
-        <span className="text-xs mt-10 w-[100%] flex justify-center ">Already has an account  ! <span className="text-blue-500 pl-1 cursor-pointer " onClick={()=> setOption("login")} > Login ?</span>  </span>
+        <Form onSuccess={()=> setOption(["login","success"])} />
+        <span className="text-xs mt-10 w-[100%] flex justify-center ">Already has an account  ! <span className="text-blue-500 pl-1 cursor-pointer " onClick={()=> setOption(["login"])} > Login ?</span>  </span>
 
     </div>
     )
