@@ -74,7 +74,6 @@ const Form = ({onSuccess}:any) =>{
         const result = await SignUpAction(data);
        
          if (result?.ok){
-           console.log(result)
             onSuccess()
          }
          else{

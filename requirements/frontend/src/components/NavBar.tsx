@@ -48,7 +48,6 @@ const PagesSection  = ({isAuthenticated} :any) =>{
 const RegisterSection = () =>{
     const [option, setoption] = useState(['']);
 
-    console.log(option)
     return (<div className="w-[20%] min-w-64  bg-white flex justify-around items-center  "> 
     
             <button className="border-2 w-32 h-9  border-neutral-300 rounded-lg cursor-pointer" onClick={() => setoption(["login"])}> Login  </button>
