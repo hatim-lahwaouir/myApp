@@ -11,7 +11,7 @@ from authe.models import User
 from channels.db import database_sync_to_async
 from collections import deque 
 # Redis = redis.Redis(host='redis', port=6379, decode_responses=True)
- 
+import asyncio
 
 
 def getGameId(params):
@@ -34,7 +34,13 @@ gameQueue = set()
 gameSet = set()
 gameMap  = {}
 playerPosition  = {}
- 
+playersDirection  = {}
+
+
+
+
+
+
 def generateMap():
     mp = []
     size = 20
@@ -50,7 +56,10 @@ def generateMap():
 
 
     return mp
- 
+
+
+
+
 
 m  =  generateMap()
 m[10][10] = '1'
@@ -83,16 +92,23 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
         playerPosition[self.user.id] = [40 , 40]
-        await self.channel_layer.group_send(
-                   self.gn,
-                    {
-                            "type": "wellcom.game",
-                            "user"  : {"username" : self.user.username , "id" : self.user.id},
-                            "map" : m,
-                            "playePosition" : playerPosition[self.user.id],
-                    }
-        )
- 
+        playersDirection[self.user.id] = 0
+        asyncio.create_task(self.game_loop())
+     
+    async def game_loop(self):
+        
+        while True:
+            await self.channel_layer.group_send(
+                    self.gn,
+                        {
+                                "type": "wellcom.game",
+                                "user"  : {"username" : self.user.username , "id" : self.user.id},
+                                "map" : m,
+                                "playersPosition" : playerPosition,
+                                "playersDirection" : playersDirection,
+                        }
+            )
+            await asyncio.sleep(1/60)
   
     async def wellcom_game(self, data):
         await self.send(text_data=json.dumps(data))
@@ -121,27 +137,29 @@ class GameConsumer(AsyncWebsocketConsumer):
         if not  move:
             return
         # const allowedKeys = ["ArrowUp", "ArrowDown", "ArrowRight", "ArrowLeft"];
-        vitess = 5
+        vitess = 8
+        rotationVitess = 0.06
         if move == "ArrowUp":
             playerPosition[self.user.id][1] -= vitess
         if move == "ArrowDown":
             playerPosition[self.user.id][1] += vitess
-
+ 
 
         if move == "ArrowRight":
             playerPosition[self.user.id][0] += vitess
         if move == "ArrowLeft":
             playerPosition[self.user.id][0] -= vitess
 
-        await self.channel_layer.group_send(
-                   self.gn,
-                    {
-                            "type": "wellcom.game",
-                            "user"  : {"username" : self.user.username , "id" : self.user.id},
-                            "map" : m,
-                            "playePosition" : playerPosition[self.user.id],
-                    }
-        )
+        if move == 'A' or move == 'a':
+            playersDirection[self.user.id] -= rotationVitess
+        if move == 'D' or move == 'd':
+            playersDirection[self.user.id] += rotationVitess
+
+ 
+        if playersDirection[self.user.id] < 0:
+            playersDirection[self.user.id] =  ((-1 * playersDirection[self.user.id]) % 360) * -1  
+        else:
+            playersDirection[self.user.id] = playersDirection[self.user.id] % 360 
 
 
 
@@ -182,9 +200,9 @@ class GameQueue(AsyncWebsocketConsumer):
         ) 
    
  
-        if len(dq) == 1:
+        if len(dq) == 2:
             users_ids = []
-            for _ in range(1):
+            for _ in range(2):
                 users_ids.append(dq.popleft())
                 gameQueue.discard(users_ids[-1])
             # users_ids = Redis.lrange("game_list", 0, 4)

@@ -11,29 +11,9 @@ interface GameCanvasProps {
 
 
 
-
-// const map : string[][] =[   ['1','1', '1', '1', '1', '1', '1', '1', '1', '1', '1' , '1' , '1', '1'],
-//                             ['1','1', '1', '1', '1', '1', '1', '1', '1', '1', '1' , '1' , '1', '1'],
-//                             ['1','1', '1', '1', '1', '1', '1', '1', '1', '1', '1' , '1' , '1', '1'],
-//                             ['1','1', '1', '1', '1', '1', '1', '1', '1', '1', '1' , '1' , '1', '1'],
-//                             ['1','0', '0', '0', '1', '0', '1', '0', '1', '0', '0' , '0' , '1', '1'],
-//                             ['1','1', '0', '1', '1', '0', '1', '0', '1', '0', '1' , '0' , '1', '1'],
-//                             ['1','1', '0', '1', '1', '0', '1', '0', '1', '0', '1' , '0' , '1', '1'],
-//                             ['1','1', '0', '1', '1', '0', '1', '0', '1', '0', '1' , '0' , '1', '1'],
-//                             ['1','1', '0', '1', '1', '0', '0', '0', '1', '0', '1' , '0' , '1', '1'],
-//                             ['1','1', '0', '1', '1', '1', '1', '0', '1', '0', '0' , '0' , '1', '1'],
-//                             ['1','0', '0', '0', '1', '1', '0', '1', '1', '1', '1' , '1' , '1', '1'],
-//                             ['1','1', '1', '1', '1', '0', '1', '1', '1', '1', '1' , '1' , '1', '1'],
-//                             ['1','1', '1', '1', '1', '1', '1', '1', '1', '1', '1' , '1' , '1', '1'],
-//                             ['1','1', '1', '1', '1', '1', '1', '1', '1', '1', '1' , '1' , '1', '1'],
-//                         ]
-
-
-
 const drawMap = (m:string[][], context:CanvasRenderingContext2D, canvas:HTMLCanvasElement) =>{
     context.fillStyle = '#FFFFFF'
     context.fillRect(0, 0, canvas.width, canvas.height)
-    console.log(m.length);
     const squarSize = canvas.width / m.length ;
     
     for (let x = 0; x < m.length; x++){
@@ -51,36 +31,74 @@ const drawMap = (m:string[][], context:CanvasRenderingContext2D, canvas:HTMLCanv
 }
 
 
-const drawPlayer = (y:number, x:number, context:CanvasRenderingContext2D) => {
 
-    context.fillStyle = '#8b5cf6' ;
-    context.arc(x, y, 7 , 0, 2 * Math.PI);
+
+
+
+
+
+
+
+let me = -1;
+let playersPosition:any;
+let playersDirection:any;
+let m:string[][] = [[]];
+
+
+
+
+const drawPlayers = ( context:CanvasRenderingContext2D) => {
+
+
+    
+    Object.keys(playersPosition).forEach(key => {
+      const pos = playersPosition[key];
+      if (+key == me){
+        context.fillStyle = '#8b5cf6' ;
+    }
+    else{
+      context.fillStyle = '#000000' ;
+
+    }
+    context.beginPath();
+    context.arc(pos[0], pos[1] , 7 , 0, 2 * Math.PI);
     context.fill();
 
-    context.beginPath();
-    context.moveTo(x, y);
+    if (+key != me){
+        context.fillStyle = '#808080' ;
+    }
+        context.beginPath();
+        context.moveTo(pos[0], pos[1]);
 
-    context.stroke();
+        console.log(playersDirection[key]);
+        const endX = pos[0] + Math.cos(playersDirection[key]) * 20;
+        const endY = pos[1] + Math.sin(playersDirection[key]) * 20;
+
+        context.lineTo(endX, endY);
+        context.stroke();
+    })
+
+
 }
 
-
-
-
-
-
-
-
-
-
-
 const GameCanva = ({gameId}:GameCanvasProps) => {
-
+    
     const connection = useRef<null | WebSocket>(null)
     const canvasRef = useRef<HTMLCanvasElement>(null)
-  
-    useEffect(() => {
     
+    useEffect(() => {
+        
         const gameWebSocketSetup = async () =>{
+            const UserInfoString = localStorage.getItem("userInfo")
+
+            if (UserInfoString)
+            {
+            
+                const UserInf = JSON.parse(UserInfoString);
+                me = UserInf?.id;
+            }
+
+            
             if (!canvas) {
                 console.error('Canvas reference is null. Please ensure it\'s initialized.');
                 return;
@@ -96,24 +114,27 @@ const GameCanva = ({gameId}:GameCanvasProps) => {
           
             socket.addEventListener("message", (event:any) => {
                 const message = JSON.parse(event?.data);
-            console.log(message);
-    
-            drawMap(message?.map, context, canvas);
-            const playePosition = message?.playePosition;
-            drawPlayer(playePosition[1], playePosition[0], context);
-
+            
+                
+                playersPosition = message?.playersPosition;
+                playersDirection = message?.playersDirection;
+                m = message?.map;
             })
             const handelClicks = (event: KeyboardEvent) =>{
-                const allowedKeys = ["ArrowUp", "ArrowDown", "ArrowRight", "ArrowLeft"];
+                const allowedKeys = ["ArrowUp", "ArrowDown", "ArrowRight", "ArrowLeft", "a" , "d", "A", "D", "w", "s"];
             
+                console.log(event.key);
                 if (allowedKeys.includes(event.key)) {
-                    // The event key is one of ArrowUp, ArrowDown, ArrowRight, or ArrowLeft
-                    
                     connection.current?.send(JSON.stringify({"move" :  event.key}));
                 }
-                
-            
             }
+            const drawGame = () =>{
+                drawMap(m, context, canvas);
+                drawPlayers(context);
+            }
+
+            setInterval(drawGame, 1000 / 60);
+            
             addEventListener("keydown", handelClicks);
             connection.current = socket;
         }

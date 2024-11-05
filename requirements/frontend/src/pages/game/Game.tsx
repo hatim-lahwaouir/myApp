@@ -29,9 +29,7 @@ const Game = ()  =>{
             const type = message?.type;
 
             if (type == "join.game"){
-                console.log("join the game")
                 connection.current?.close();
-
                 setGameId(message?.gameId);
             }
         })
@@ -69,7 +67,7 @@ const Game = ()  =>{
     return (
         <div className="w-full flex flex-col items-center ">
             <NavBar/>        
-                <div className=" bg-gradient-to-t from-gray-200 to-white w-1/2 h-[50vh] flex justify-center items-center rounded-2xl shadow-md">
+                <div className=" bg-gradient-to-t from-gray-200  to-white w-full h-[70vh] flex flex-col justify-center items-center rounded-2xl shadow-md">
 
                     <div className="bg-white w-80 h-80 rounded-lg flex flex-col items-center shadow-lg ">
 
